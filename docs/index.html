@@ -1,10 +1,47 @@
 <!DOCTYPE html>
-<html>
+<html lang="zh-CN">
 <head>
-    <title>测试页面</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>🌍 全球能源新闻监控</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
+        body { background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); min-height: 100vh; padding: 40px 20px; }
+        .container { max-width: 900px; margin: 0 auto; }
+        h1 { color: white; text-align: center; margin-bottom: 30px; font-size: 2.5rem; }
+        .card { background: white; border-radius: 15px; padding: 30px; margin-bottom: 20px; box-shadow: 0 10px 40px rgba(0,0,0,0.2); }
+        .report-item { padding: 20px; border-bottom: 1px solid #e2e8f0; display: flex; justify-content: space-between; align-items: center; }
+        .report-item:last-child { border-bottom: none; }
+        .report-date { font-weight: 600; color: #2d3748; }
+        .links a { margin-left: 10px; padding: 8px 15px; border-radius: 5px; text-decoration: none; color: white; font-size: 0.9rem; }
+        .btn-html { background: #4299e1; }
+        .btn-md { background: #48bb78; }
+        .info { text-align: center; color: white; margin-top: 30px; opacity: 0.9; }
+    </style>
 </head>
 <body>
-    <h1>GitHub Pages 测试成功！</h1>
-    <p>这是 docs 文件夹中的页面</p>
+    <div class="container">
+        <h1>🌍 全球能源新闻监控</h1>
+        
+        <div class="card">
+            <h2 style="margin-bottom: 20px; color: #2d3748;">📋 历史报告</h2>
+            <div id="report-list">
+                <!-- 报告列表 -->
+                <div class="report-item">
+                    <span class="report-date">📅 2026-02-21</span>
+                    <div class="links">
+                        <a href="Energy_Report_2026-02-21.html" class="btn-html" target="_blank">HTML</a>
+                        <a href="Energy_Report_2026-02-21.md" class="btn-md" target="_blank">MD</a>
+                    </div>
+                </div>
+                <!-- 更多报告... -->
+            </div>
+        </div>
+        
+        <p class="info">
+            自动更新 · 每日 8:45 · 
+            <a href="https://github.com/nash08338/new-energy-news-monitor/" style="color: white;">GitHub 仓库</a>
+        </p>
+    </div>
 </body>
 </html>
