@@ -330,7 +330,7 @@ def monitor_all_sources():
                     found_count += 1
                     time.sleep(random.uniform(3, 8))
                     if found_count >= 3:
-                    break
+                        break
             if found_count == 0:
                 print("✨ 未发现新内容。")
         except Exception as e:
