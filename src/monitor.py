@@ -11,7 +11,7 @@ import time
 import random
 import requests
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 from bs4 import BeautifulSoup
 
 # ========== 安全配置区 ==========
@@ -74,7 +74,7 @@ def get_ai_summary(link):
             data = {
                 "model": "deepseek-chat",
                 "messages": [
-                    {"role": "system", "content": "你是一位专业资深的能源分析师，请用中文总结这篇新闻。要求：分为"核心内容"和"商业机会"两个部分。"},
+                    {"role": "system", "content": "你是一位专业资深的能源分析师，请用中文总结这篇新闻。要求：分为'核心内容'和'商业机会'两个部分。"},
                     {"role": "user", "content": full_text}
                 ],
                 "temperature": 0.3,
@@ -278,10 +278,13 @@ def generate_reports(report_data):
     print(f"✅ 报告已生成：{md_filename}, {html_filename}")
 
 def monitor_all_sources():
-    """监控所有新闻源"""
+    """监控所有新闻源，仅处理最近7天内的新闻"""
     full_report = ""
     bad_keywords = ['newsletter', 'feed', 'contact', 'about', 'events', 'advertise', 'privacy', 'terms', 'subscribe', 'img', 'image']
     bad_extensions = ['.jpg', '.jpeg', '.png', '.gif', '.svg', '.pdf', '.webp', '.avif']
+
+    # 计算一周前的日期（用于比较）
+    one_week_ago = datetime.now() - timedelta(days=7)
 
     for source in SOURCES:
         print(f"\n" + "="*30)
@@ -295,6 +298,9 @@ def monitor_all_sources():
             
             found_count = 0
             for title, link in all_links:
+                if found_count >= 3:
+                    break  # 提前退出内层循环
+                
                 title = title.strip()
                 link_original = re.split(r'[\s"]', link)[0]
                 link_lower = link_original.lower()
@@ -312,34 +318,58 @@ def monitor_all_sources():
                         if link_lower.count('-') >= 4:
                             is_news = True
 
-                if is_news and not check_history(link_original):
-                    print(f"✅ 捕获情报：{title}")
-                    
-                    publish_date = get_news_publish_date(link_original, debug=True)
-                    print(f"   📅 发布时间：{publish_date}")
-                    
-                    summary = get_ai_summary(link_original)
-                    summary = clean_ai_summary(summary)
-                    
-                    full_report += f"### {title}\n"
-                    full_report += f"<p class='publish-date'>📅 发布时间：{publish_date}</p>\n"
-                    full_report += f"**来源**: {source['name']} | [查看原文]({link_original})\n\n"
-                    full_report += f"📝 中文摘要:\n{summary}\n\n---\n\n"
-                    
-                    save_history(link_original)
-                    found_count += 1
-                    time.sleep(random.uniform(3, 8))
-                    if found_count >= 3:
-                    break
+                # 跳过非新闻或已处理过的
+                if not is_news or check_history(link_original):
+                    continue
+
+                print(f"✅ 捕获情报：{title}")
+                publish_date_str = get_news_publish_date(link_original)
+                print(f"   📅 发布时间：{publish_date_str}")
+
+                # === 新增：时间筛选逻辑 ===
+                skip_due_to_date = False
+                if publish_date_str == "未知":
+                    print("   ⏭️  跳过：无法确定发布时间")
+                    skip_due_to_date = True
+                else:
+                    try:
+                        # 尝试解析为 datetime
+                        pub_dt = datetime.strptime(publish_date_str, "%Y-%m-%d")
+                        if pub_dt.date() < one_week_ago.date():
+                            print(f"   ⏭️  跳过：发布时间早于 {one_week_ago.strftime('%Y-%m-%d')}（超过7天）")
+                            skip_due_to_date = True
+                        else:
+                            print("   ✅ 时间符合要求（7天内）")
+                    except Exception as e:
+                        print(f"   ⏭️  跳过：日期解析失败 - {e}")
+                        skip_due_to_date = True
+
+                if skip_due_to_date:
+                    save_history(link_original)  # 可选：避免重复检查旧新闻
+                    continue
+
+                # === 仅当时间合格时，才获取 AI 摘要 ===
+                summary = get_ai_summary(link_original)
+                summary = clean_ai_summary(summary)
+                
+                full_report += f"### {title}\n"
+                full_report += f"<p class='publish-date'>📅 发布时间：{publish_date_str}</p>\n"
+                full_report += f"**来源**: {source['name']} | [查看原文]({link_original})\n\n"
+                full_report += f"📝 中文摘要:\n{summary}\n\n---\n\n"
+                
+                save_history(link_original)
+                found_count += 1
+                time.sleep(random.uniform(3, 8))
+
             if found_count == 0:
-                print("✨ 未发现新内容。")
+                print("✨ 未发现新内容（或无7天内新闻）。")
         except Exception as e:
             print(f"❌ 出错：{e}")
 
     if full_report:
         generate_reports(full_report)
     else:
-        print("📭 本次无新报告生成")
+        print("📭 本次无新报告生成（无7天内有效新闻）")
 
 if __name__ == "__main__":
     print("=" * 50)
