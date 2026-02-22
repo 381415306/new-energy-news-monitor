@@ -19,6 +19,9 @@ from bs4 import BeautifulSoup
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 HISTORY_FILE = os.path.join(BASE_DIR, "history.txt")
 
+# ⭐ 新增：报告输出目录
+REPORTS_DIR = os.path.join(BASE_DIR, "docs")
+
 # ========== 安全配置区 ==========
 # 从环境变量读取 API Key（GitHub Actions 会自动注入）
 DEEPSEEK_API_KEY = os.getenv('DEEPSEEK_API_KEY', '')
@@ -270,8 +273,13 @@ def clean_ai_summary(text):
 def generate_reports(report_data):
     """生成 Markdown 和 HTML 报告"""
     today = datetime.now().strftime("%Y-%m-%d")
-    md_filename = f"Energy_Report_{today}.md"
-    html_filename = f"Energy_Report_{today}.html"
+    
+    # ⭐ 关键修改：确保 docs 文件夹存在
+    os.makedirs(REPORTS_DIR, exist_ok=True)
+    
+    # ⭐ 关键修改：文件路径改为 docs/ 文件夹
+    md_filename = os.path.join(REPORTS_DIR, f"Energy_Report_{today}.md")
+    html_filename = os.path.join(REPORTS_DIR, f"Energy_Report_{today}.html")
     
     # Markdown 报告
     with open(md_filename, "w", encoding="utf-8") as f:
@@ -368,7 +376,7 @@ def monitor_all_sources():
                 
                 # 跳过已处理过的链接
                 if check_history(link_original):
-                    print(f"⏭️  跳过（已处理）：{title}")
+                    print(f"️  跳过（已处理）：{title}")
                     continue
 
                 print(f"✅ 捕获情报：{title}")

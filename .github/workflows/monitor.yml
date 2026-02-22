@@ -9,12 +9,9 @@ concurrency:
   group: energy-monitor
   cancel-in-progress: true
 
-
-
 # ⭐ 关键：授予写入权限
 permissions:
   contents: write        # 允许推送代码到仓库
-
 
 jobs:
   monitor:
@@ -54,21 +51,42 @@ jobs:
           JINA_KEY: ${{ secrets.JINA_KEY }}
         run: python src/monitor.py
       
-      # 步骤 6: 提交生成的报告
+      # ⭐ 步骤 6 (新增): 将报告移动到 docs 文件夹
+      - name: 📂 Move reports to docs folder
+        run: |
+          # 确保 docs 文件夹存在
+          mkdir -p docs
+          
+          # 移动 HTML 和 MD 报告到 docs (如果存在)
+          mv *.html docs/ 2>/dev/null || true
+          mv *.md docs/ 2>/dev/null || true
+          
+          # 如果有 history.txt 也需要移动 (如果您的 index 依赖它，否则可忽略)
+          # mv history.txt docs/ 2>/dev/null || true
+          
+          # 验证移动结果
+          echo "Files in docs folder:"
+          ls -la docs/
+      
+      # 步骤 7: 提交生成的报告 (修改路径为 docs/)
       - name: 📤 Commit and push reports
         run: |
-          git add *.md *.html history.txt || true
+          # 只添加 docs 文件夹下的变更
+          git add docs/*.md docs/*.html || true
+          # 如果 history.txt 在根目录且需要更新，也加上
+          git add history.txt || true 
+          
           git commit -m "📊 Auto-generated report $(date -u +%Y-%m-%d)" || true
           git push https://x-access-token:${{ secrets.GITHUB_TOKEN }}@github.com/${{ github.repository }}.git HEAD:main || true
       
-      # 步骤 7: 上传报告作为 Artifact
+      # 步骤 8: 上传报告作为 Artifact
       - name: 📦 Upload reports as artifacts
         uses: actions/upload-artifact@v4
         if: always()
         with:
           name: energy-reports-${{ github.run_number }}
           path: |
-            *.md
-            *.html
+            docs/*.md
+            docs/*.html
             history.txt
           retention-days: 30
