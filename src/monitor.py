@@ -170,7 +170,11 @@ def get_ai_summary(link):
                 "temperature": 0.3,
                 "max_tokens": 500
             }
-            response = requests.post(url, headers_ds, data=json.dumps(data), timeout=30)
+            response = requests.post(
+            url, 
+            headers=headers_ds, 
+            data=json.dumps(data), 
+            timeout=30)
             
             # ⭐ 统计 DeepSeek Token
             result = response.json()
