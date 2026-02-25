@@ -2,7 +2,7 @@ name: newenergynews
 
 on:
   schedule:
-    - cron: '45 0 * * *'
+    - cron: '*/10 0 * * *'
   workflow_dispatch:
 
 concurrency:
@@ -74,4 +74,3 @@ jobs:
             docs/token_usage.json
             history.txt
           retention-days: 30
-#active
